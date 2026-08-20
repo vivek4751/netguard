@@ -14,3 +14,6 @@
 - [x] Save and verify the final NetGuard demo checkpoint for delivery.
 - [x] Assert intermediate analysis progress and active phase changes in the UI test before completion.
 - [x] Document the keyboard, live-region, progressbar, and reduced-motion accessibility verification pass.
+- [ ] Confirm the GitHub export connection path and repository ownership requirements.
+- [ ] Prepare NetGuard repository metadata and a GitHub-ready export description.
+- [ ] Guide the user through creating or linking the GitHub repository and verifying the first push.
