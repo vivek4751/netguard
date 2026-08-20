@@ -18,3 +18,7 @@
 - [x] Prepare NetGuard repository metadata and a GitHub-ready export description.
 - [x] Guide the user through creating or linking the GitHub repository and verifying the first push.
 - [x] Deliver the connected repository URL and concise local GitHub workflow to the user.
+- [x] Define a concise NetGuard overview and route-level information architecture.
+- [x] Move findings, flow analysis, policy enforcement, architecture, and report content into dedicated detail pages.
+- [x] Add expandable overview sections and responsive cross-page navigation.
+- [x] Validate desktop and mobile navigation behavior, then save the updated project checkpoint.

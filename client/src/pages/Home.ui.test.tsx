@@ -39,4 +39,14 @@ describe("NetGuard Run Demo Analysis", () => {
     expect(screen.getByText("Analysis in progress")).toBeTruthy();
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("0");
   });
+
+  it("expands a concise overview card to reveal its focused workspace link", () => {
+    render(<Home />);
+    const overview = document.querySelector("details.overview-item") as HTMLDetailsElement;
+    expect(overview.open).toBe(false);
+    fireEvent.click(screen.getByText("Findings & flows"));
+    expect(overview.open).toBe(true);
+    expect(screen.getByText("3 detector findings")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Open Findings & flows" }).getAttribute("href")).toBe("/analysis");
+  });
 });
