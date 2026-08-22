@@ -17,7 +17,7 @@ describe("NetGuard Run Demo Analysis", () => {
   it("starts, completes, and resets the shared analysis demo", async () => {
     render(<Home />);
     fireEvent.click(screen.getAllByRole("button", { name: "Run Demo Analysis" })[0]);
-    expect(screen.getByText("Analysis in progress")).toBeTruthy();
+    expect(screen.getByText("Processing capture")).toBeTruthy();
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("0");
 
     for (let index = 0; index < 3; index += 1) {
@@ -36,7 +36,7 @@ describe("NetGuard Run Demo Analysis", () => {
     expect(screen.getByText("Analysis complete")).toBeTruthy();
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("100");
     fireEvent.click(screen.getByRole("button", { name: "Run Again" }));
-    expect(screen.getByText("Analysis in progress")).toBeTruthy();
+    expect(screen.getByText("Processing capture")).toBeTruthy();
     expect(screen.getByRole("progressbar").getAttribute("aria-valuenow")).toBe("0");
   });
 
@@ -44,9 +44,9 @@ describe("NetGuard Run Demo Analysis", () => {
     render(<Home />);
     const overview = document.querySelector("details.overview-item") as HTMLDetailsElement;
     expect(overview.open).toBe(false);
-    fireEvent.click(screen.getByText("Findings & flows"));
+    fireEvent.click(screen.getByText("Detection results"));
     expect(overview.open).toBe(true);
-    expect(screen.getByText("3 detector findings")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Open Findings & flows" }).getAttribute("href")).toBe("/analysis");
+    expect(screen.getByText("3 findings")).toBeTruthy();
+    expect((overview.querySelector("a") as HTMLAnchorElement).getAttribute("href")).toBe("/analysis");
   });
 });

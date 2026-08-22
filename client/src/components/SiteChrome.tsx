@@ -1,40 +1,36 @@
 import React from "react";
-import { ChevronDown, ShieldCheck } from "lucide-react";
+import { ChevronDown, CircleDot, ShieldCheck } from "lucide-react";
 import { Link } from "wouter";
 
-type SiteChromeProps = {
-  children: React.ReactNode;
-};
-
-export default function SiteChrome({ children }: SiteChromeProps) {
+export default function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="netguard-app">
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
       <header className="topbar">
-        <Link className="brand" href="/" aria-label="NetGuard home">
-          <span className="brand-mark"><ShieldCheck size={18} strokeWidth={2.5} /></span>
-          <span>NetGuard</span>
-        </Link>
-        <nav className="desktop-nav" aria-label="Primary navigation">
-          <Link href="/">Overview</Link>
-          <Link href="/analysis">Analysis</Link>
-          <Link href="/architecture">Architecture</Link>
-          <Link href="/report">Report</Link>
-        </nav>
-        <details className="mobile-menu">
-          <summary aria-label="Open navigation"><ChevronDown size={17} /></summary>
-          <div>
+        <div className="topbar-inner">
+          <Link className="brand" href="/" aria-label="NetGuard home">
+            <span className="brand-mark"><ShieldCheck size={19} strokeWidth={2.4} /></span>
+            <span><strong>NetGuard</strong><small>Network analysis project</small></span>
+          </Link>
+          <nav className="desktop-nav" aria-label="Primary navigation">
             <Link href="/">Overview</Link>
             <Link href="/analysis">Analysis</Link>
             <Link href="/architecture">Architecture</Link>
             <Link href="/report">Report</Link>
-          </div>
-        </details>
-        <span className="status-chip"><span className="live-dot" /> demo environment</span>
+          </nav>
+          <details className="mobile-menu">
+            <summary aria-label="Open navigation"><ChevronDown size={18} /></summary>
+            <div>
+              <Link href="/">Overview</Link>
+              <Link href="/analysis">Analysis</Link>
+              <Link href="/architecture">Architecture</Link>
+              <Link href="/report">Report</Link>
+            </div>
+          </details>
+          <span className="status-chip"><CircleDot size={14} /> Demo mode</span>
+        </div>
       </header>
       {children}
-      <footer className="shell footer"><span className="brand"><span className="brand-mark"><ShieldCheck size={16} /></span>NetGuard</span><span>Explainable network threat detection engine</span><span>Demo data is deterministic and internally consistent.</span></footer>
+      <footer className="footer"><div><strong>NetGuard</strong><span>Student systems project · C++17</span></div><span>PCAP analysis, flow tracking, threat heuristics, JSON reporting</span></footer>
     </div>
   );
 }
