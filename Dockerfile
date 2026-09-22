@@ -1,5 +1,5 @@
 FROM node:22-bookworm-slim AS build
-RUN apt-get update && apt-get install -y --no-install-recommends cmake g++ nlohmann-json3-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends cmake make g++ nlohmann-json3-dev && rm -rf /var/lib/apt/lists/*
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
