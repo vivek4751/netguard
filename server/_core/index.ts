@@ -23,6 +23,16 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 async function startServer() {
   const app = express();
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    if (req.method === "OPTIONS") {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
   const server = createServer(app);
   // Raw bounded capture uploads must be registered before generic body parsers.
   const analysis = registerAnalysisRoutes(app);
