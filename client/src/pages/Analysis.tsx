@@ -1,57 +1,33 @@
 import React from "react";
-import { ArrowRight, LockKeyhole, Network, ShieldAlert, ShieldCheck } from "lucide-react";
+import { ArrowRight, LockKeyhole, Network, ShieldCheck } from "lucide-react";
+import { Link } from "wouter";
 import SiteChrome from "@/components/SiteChrome";
-import { demoAlerts, demoFlows, demoSummary, policies } from "@/data/netguardDemo";
-
-const stats = [
-  ["Input packets", demoSummary.inputPackets, "Sample PCAP intake"],
-  ["Forwarded", demoSummary.forwardedPackets, `${demoSummary.droppedPackets} policy drops`],
-  ["Active flows", demoSummary.activeFlows, "5-tuple affinity"],
-  ["Throughput", `${demoSummary.throughput} MB/s`, "4 worker threads"],
-];
+import { useAnalysis } from "@/contexts/AnalysisContext";
+import { demoAlerts, demoFlows, demoSummary, policies as demoPolicies } from "@/data/netguardDemo";
 
 export default function Analysis() {
-  return (
-    <SiteChrome>
-      <main className="shell detail-page">
-        <section className="page-intro">
-          <span className="eyebrow">Analysis workspace</span>
-          <h1>From a packet capture to <em>defensible findings.</em></h1>
-          <p>This dedicated view holds the NetGuard sample run: packet accounting, detector evidence, active flows, and the policy decision ledger.</p>
-        </section>
-
-        <section className="detail-block">
-          <div className="detail-block-head"><div><span className="eyebrow">Run summary</span><h2>Operational context first.</h2></div><span className="status-chip"><ShieldCheck size={13} /> accounting reconciled</span></div>
-          <div className="mini-stat-grid">{stats.map(([label, value, note]) => <article className="mini-stat" key={label as string}><span>{label}</span><strong>{value}</strong><small>{note}</small></article>)}</div>
-        </section>
-
-        <section className="detail-block">
-          <div className="detail-block-head"><div><span className="eyebrow">Threat feed</span><h2>Three findings, each with evidence.</h2></div><span className="count-badge">3 high-priority alerts</span></div>
-          <div className="alert-list">
-            {demoAlerts.map((alert, index) => <article className="alert-card" key={alert.detector}>
-              <div className="alert-index">0{index + 1}</div>
-              <div className="alert-main">
-                <div className="alert-title-row"><span className={`severity-badge ${alert.severity}`}>{alert.severity}</span><code>{alert.detector}</code><span className="risk-score">risk {alert.score}</span></div>
-                <p>{alert.explanation}</p>
-                <div className="ip-route"><span>{alert.sourceIp}</span><ArrowRight size={14} /><span>{alert.destinationIp}{alert.destinationPort ? `:${alert.destinationPort}` : ""}</span></div>
-                {alert.domain && <div className="domain-line"><Network size={13} /> {alert.domain}</div>}
-                <div className="evidence-grid">{alert.evidence.map(([key, value]) => <div key={key}><small>{key.replaceAll("_", " ")}</small><b>{value}</b></div>)}</div>
-              </div>
-            </article>)}
-          </div>
-        </section>
-
-        <section className="detail-block">
-          <div className="detail-block-head"><div><span className="eyebrow">Flow analysis</span><h2>State remains with the worker that owns it.</h2></div><span className="table-caption">6 of {demoSummary.activeFlows} flows shown</span></div>
-          <div className="flow-table-wrap"><table className="flow-table"><thead><tr><th>Source</th><th>Destination</th><th>Protocol</th><th>Packets</th><th>Bytes</th><th>Domain</th><th>Application</th><th>State</th></tr></thead><tbody>{demoFlows.map((flow) => <tr key={`${flow.source}-${flow.destination}`}><td>{flow.source}</td><td>{flow.destination}</td><td><span className={`protocol ${flow.protocol.toLowerCase()}`}>{flow.protocol}</span></td><td>{flow.packets}</td><td>{flow.bytes}</td><td className="domain-cell">{flow.domain}</td><td>{flow.app}</td><td><span className={`flow-state ${flow.state.toLowerCase()}`}>{flow.state}</span></td></tr>)}</tbody></table></div>
-        </section>
-
-        <section className="policy-ledger">
-          <div><span className="eyebrow">Policy enforcement</span><h2>Seven packets stopped by explicit policy.</h2><p>Policy matches remain visible and reviewable, instead of becoming invisible drop events.</p></div>
-          <div className="policy-rules">{policies.map((policy) => <article className="policy-rule" key={policy.rule}><div className="policy-rule-top"><span>{policy.type}</span><b>{policy.dropped} dropped</b></div><strong>{policy.rule}</strong><small>{policy.description}</small><div className="rule-meter"><span style={{ width: `${(policy.dropped / demoSummary.droppedPackets) * 100}%` }} /></div></article>)}</div>
-          <div className="policy-footer"><LockKeyhole size={15} /><span>Filtered output preserves original packet ordering.</span></div>
-        </section>
-      </main>
-    </SiteChrome>
-  );
+  const state=useAnalysis();const live=state.mode==="live";const report=live?state.result?.report:undefined;
+  if(live&&!report)return <SiteChrome><main className="shell detail-page"><h1>Live analysis</h1><p role={state.error?"alert":"status"}>{state.status==="running"?"Your capture is being analyzed.":state.error||"No live results yet. Upload a PCAP to begin."}</p><Link href="/#live-analysis">Open PCAP upload</Link></main></SiteChrome>;
+  const summary=report?{inputPackets:report.summary.input_packets,forwardedPackets:report.summary.forwarded_packets,droppedPackets:report.summary.dropped_packets,activeFlows:report.summary.active_flows,throughput:report.summary.megabytes_per_second}:demoSummary;
+  const alerts=report?report.alerts.map(a=>({detector:a.detector,severity:a.severity,score:a.score,sourceIp:a.source_ip,destinationIp:a.destination_ip,destinationPort:a.destination_port,domain:a.domain,explanation:a.explanation,evidence:Object.entries(a.evidence).map(([k,v])=>[k,String(v)] as [string,string])})):demoAlerts;
+  const flows=report?report.flows.map(f=>({...f,bytes:`${f.bytes} B`,domain:f.domain||"—"})):demoFlows;
+  const policies=report?report.policies:demoPolicies;
+  const stats=[
+    ["Input packets",summary.inputPackets,live?state.filename:"Sample PCAP intake"],
+    ["Forwarded",summary.forwardedPackets,`${summary.droppedPackets} policy drops`],
+    ["Active flows",summary.activeFlows,"Bidirectional 5-tuple"],
+    ["Throughput",`${summary.throughput.toFixed(2)} MB/s`,`${report?.configuration.workers??4} worker threads`],
+  ];
+  return <SiteChrome><main className="shell detail-page">
+    <section className="page-intro"><span className="eyebrow">{live?"Live engine results":"Sample analysis — simulated"}</span><h1>From a packet capture to <em>defensible findings.</em></h1><p>{live?"Actual capture results with heuristic evidence. An alert is a signal for review, not proof of an attack.":"This view shows the original sample run, not an uploaded capture."}</p><button className="copy-button" onClick={()=>state.setMode(live?"demo":"live")}>{live?"Show demo results":"Show live results"}</button></section>
+    <section className="detail-block"><div className="detail-block-head"><div><span className="eyebrow">Run summary</span><h2>Operational context first.</h2></div><span className="status-chip"><ShieldCheck size={13}/> accounting reconciled</span></div><div className="mini-stat-grid">{stats.map(([label,value,note])=><article className="mini-stat" key={String(label)}><span>{label}</span><strong>{value}</strong><small>{note}</small></article>)}</div>{report&&<p>{report.summary.unsupported_packets} unsupported packets forwarded without full inspection; {report.summary.malformed_dns_packets} malformed DNS packets.</p>}</section>
+    <section className="detail-block"><div className="detail-block-head"><div><span className="eyebrow">Threat feed</span><h2>{alerts.length} findings, each with evidence.</h2></div><span className="count-badge">{alerts.length} alerts</span></div>
+      {!alerts.length&&<p>No configured detector threshold was crossed. This does not establish that the capture is safe.</p>}
+      <div className="alert-list">{alerts.slice(0,200).map((alert,index)=><article className="alert-card" key={`${alert.detector}-${index}`}><div className="alert-index">{index+1}</div><div className="alert-main"><div className="alert-title-row"><span className={`severity-badge ${alert.severity}`}>{alert.severity}</span><code>{alert.detector}</code><span className="risk-score">risk {alert.score}</span></div><p>{alert.explanation}</p><div className="ip-route"><span>{alert.sourceIp}</span><ArrowRight size={14}/><span>{alert.destinationIp}{alert.destinationPort?`:${alert.destinationPort}`:""}</span></div>{alert.domain&&<div className="domain-line"><Network size={13}/>{alert.domain}</div>}<div className="evidence-grid">{alert.evidence.map(([key,value])=><div key={key}><small>{key.replaceAll("_"," ")}</small><b>{value}</b></div>)}</div></div></article>)}</div><p>Showing {Math.min(200,alerts.length)} of {alerts.length} alerts. The JSON download contains all findings.</p>
+    </section>
+    <section className="detail-block"><div className="detail-block-head"><div><span className="eyebrow">Flow analysis</span><h2>Bidirectional traffic accounting.</h2></div><span className="table-caption">{Math.min(200,flows.length)} of {summary.activeFlows} flows shown</span></div><div className="flow-table-wrap"><table className="flow-table"><thead><tr><th>Source</th><th>Destination</th><th>Protocol</th><th>Packets</th><th>Bytes</th><th>Domain</th><th>Application</th><th>State</th></tr></thead><tbody>{flows.slice(0,200).map((flow,index)=><tr key={`${flow.source}-${flow.destination}-${flow.protocol}-${index}`}><td>{flow.source}</td><td>{flow.destination}</td><td>{flow.protocol}</td><td>{flow.packets}</td><td>{flow.bytes}</td><td>{flow.domain}</td><td>{flow.app}</td><td>{flow.state}</td></tr>)}</tbody></table></div>{!flows.length&&<p>No supported flows found.</p>}{live&&<p>Flow state reflects policy drops or the transfer threshold. Source-wide scan/DNS alerts remain in the threat feed; “Allowed” does not mean threat-free.</p>}</section>
+    <section className="policy-ledger"><div><span className="eyebrow">Policy enforcement</span><h2>{summary.droppedPackets} packets filtered by explicit policy.</h2><p>Filtering affects the output capture only, not the network firewall.</p></div><div className="policy-rules">{policies.map((policy,index)=><article className="policy-rule" key={`${policy.type}-${policy.rule}-${index}`}><div className="policy-rule-top"><span>{policy.type}</span><b>{policy.dropped} dropped</b></div><strong>{policy.rule}</strong><small>{policy.description}</small><div className="rule-meter"><span style={{width:`${summary.droppedPackets?policy.dropped/summary.droppedPackets*100:0}%`}}/></div></article>)}</div>{!policies.length&&<p>No deny rules configured.</p>}<div className="policy-footer"><LockKeyhole size={15}/><span>Filtered output preserves original packet ordering.</span></div>{live&&<button className="primary-button" onClick={()=>void state.download("filtered.pcap")}>Download filtered PCAP</button>}</section>
+    {state.error&&<p role="alert">{state.error}</p>}
+    {report&&<section className="detail-block"><h2>Scope and limitations</h2>{report.limitations.map(text=><p key={text}>{text}</p>)}</section>}
+  </main></SiteChrome>;
 }
