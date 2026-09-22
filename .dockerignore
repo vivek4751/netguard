@@ -1,0 +1,11 @@
+.git
+node_modules
+dist
+engine/build
+.env
+.env.*
+*.pcap
+*.pcapng
+*.log
+.manus-logs
+coverage
