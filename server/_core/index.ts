@@ -35,7 +35,7 @@ async function startServer() {
     }
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
+    res.header("Access-Control-Allow-Headers", "Authorization, Content-Type, x-netguard-options");
     if (req.method === "OPTIONS") {
       res.sendStatus(200);
       return;
